@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Speed Reader (Fixed Pivot)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #111;
+            color: #eee;
+            font-family: system-ui, sans-serif;
+        }
+
+        .text-container {
+            width: 100%;
+            height: 30vh;
+            font-size: 16px;
+            padding: 10px;
+            background: #1c1c1c;
+            color: #eee;
+            border: 1px solid #444;
+            box-sizing: border-box;
+            overflow-y: auto;
+            line-height: 1.5em;
+        }
+
+        .text-container span {
+            white-space: pre-wrap;
+        }
+
+        .highlight {
+    background: rgba(42, 92, 255, 0.3);   /* soft translucent blue */
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(42, 92, 255, 0.4); /* subtle blue glow */
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+
+        .controls {
+            margin: 10px 0;
+        }
+
+        .controls button {
+            margin-left: 5px;
+            font-size: 16px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .reader {
+            height: 40vh;
+            position: relative;
+            overflow: hidden;
+            border-top: 1px solid #333;
+        }
+
+        .word {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            white-space: nowrap;
+            font-size: 40px;
+            transform: translateY(-50%);
+        }
+
+        .pivot {
+            color: red;
+        }
+
+        h1 {
+            margin: 0 0 20px 0;
+        }
+        #bottomPanel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #1c1c1c;   
+    color: #eee;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 14px;
+    border-top: 1px solid #444;
+}
+    </style>
+</head>
+<body>
+    <h1>
+        𝚟𝚎𝚕𝚘𝚌𝚒<span style="color:red;">𝚛</span>𝚊𝚙𝚝𝚘𝚛
+    </h1>
+
+    <div id="text" class="text-container" contenteditable="true" placeholder="Paste your text here..."></div>
+
+    <div class="controls">
+        WPM: <input type="number" id="wpm" value="200">
+        <button id="playPauseBtn" onclick="togglePlayPause()">▶</button>
+        <button onclick="stop()">Reset</button>
+    </div>
+
+    <div class="reader">
+        <div id="display" class="word"></div>
+    </div>
+
+    <script>
+        let words = [];
+        let i = 0;
+        let timer = null;
+        let isPlaying = false;
+
+        function pivotIndex(word) {
+            if (word.length <= 3) return 0;
+            if (word.length <= 6) return 1;
+            if (word.length <= 9) return 2;
+            return Math.floor(word.length / 3);
+        }
+
+        function render(word) {
+            const clean = word.replace(/[^a-zA-Z0-9]/g, "");
+            if (!clean) return "";
+            const p = pivotIndex(clean);
+            return clean.slice(0, p) + 
+                   `<span class="pivot">${clean[p]}</span>` + 
+                   clean.slice(p + 1);
+        }
+
+        function lockPivot() {
+            const display = document.getElementById("display");
+            const pivot = display.querySelector(".pivot");
+            if (!pivot) return;
+
+            display.style.transform = "translateY(-50%)";
+
+            const pivotRect = pivot.getBoundingClientRect();
+            const pivotCenter = pivotRect.left + pivotRect.width / 2;
+            const targetX = window.innerWidth / 2;
+            const shiftX = targetX - pivotCenter;
+
+            display.style.transform = `translate(${shiftX}px, -50%)`;
+        }
+
+        function delayFor(word, base) {
+            let d = base;
+            const len = word.replace(/[^a-zA-Z0-9]/g, "").length;
+
+            if (len <= 3) d *= 0.75;
+            else if (len >= 8 && len <= 11) d *= 1.25;
+            else if (len >= 12) d *= 1.5;
+
+            if (/[.!?]$/.test(word)) d *= 2;
+            else if (/[,:]$/.test(word)) d *= 1.3;
+
+            return d;
+        }
+
+        function highlightCurrentWord(index) {
+            const textEl = document.getElementById("text");
+            textEl.querySelectorAll("span").forEach(span => span.classList.remove("highlight"));
+
+            const current = textEl.querySelectorAll("span")[index];
+            if (current) {
+                current.classList.add("highlight");
+                current.scrollIntoView({behavior: "smooth", block: "center"});
+            }
+        }
+
+        function prepareText() {
+            const textEl = document.getElementById("text");
+            const rawText = textEl.textContent.trim();
+            if (!rawText) return [];
+            const wordList = rawText.split(/\s+/);
+
+            // Replace text content with spans for each word
+            textEl.innerHTML = wordList.map(w => `<span>${w}</span>`).join(" ");
+            return wordList;
+        }
+
+        function step() {
+            if (i >= words.length) {
+                isPlaying = false;
+                document.getElementById("playPauseBtn").textContent = "▶";
+                return;
+            }
+
+            const word = words[i];
+            const base = 60000 / document.getElementById("wpm").value;
+            const display = document.getElementById("display");
+
+            display.innerHTML = render(word);
+            lockPivot(); //Surja15 : "this is the key"
+            highlightCurrentWord(i);
+
+            i++;
+            timer = setTimeout(() => step(), delayFor(word, base));
+        }
+
+        function start() {
+            if (!words.length) {
+                words = prepareText();
+                i = 0;
+            }
+            if (!timer) step();
+            isPlaying = true;
+            document.getElementById("playPauseBtn").textContent = "⏸";
+        }
+
+        function pause() {
+            clearTimeout(timer);
+            timer = null;
+            isPlaying = false;
+            document.getElementById("playPauseBtn").textContent = "▶";
+        }
+
+        function stop() {
+            clearTimeout(timer);
+            timer = null;
+            i = 0;
+            words = [];
+            isPlaying = false;
+            document.getElementById("display").innerHTML = "";
+            const textEl = document.getElementById("text");
+            textEl.querySelectorAll("span").forEach(span => span.classList.remove("highlight"));
+            document.getElementById("playPauseBtn").textContent = "▶";
+        }
+
+        function togglePlayPause() {
+            if (isPlaying) {
+                pause();
+            } else {
+                start();
+            }
+        }
+
+        window.addEventListener("resize", lockPivot);
+    </script>
+    <!-- Bottom panel -->
+    <div id="bottomPanel">
+        @Surja15, 2026
+    </div>
+</body>
+</html>
