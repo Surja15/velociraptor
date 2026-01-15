@@ -68,6 +68,13 @@
         .pivot {
             color: red;
         }
+        .text-container span:hover {
+    background:rgba(0, 255, 0, 0.35);
+}
+.text-container span {
+    white-space: pre-wrap;
+    cursor: pointer;
+}
 
         h1 {
             margin: 0 0 20px 0;
@@ -236,6 +243,28 @@
         }
 
         window.addEventListener("resize", lockPivot);
+        document.getElementById("text").addEventListener("click", (e) => {
+    if (e.target.tagName !== "SPAN") return;
+
+    const spans = Array.from(document.getElementById("text").querySelectorAll("span"));
+    const index = spans.indexOf(e.target);
+    if (index === -1) return;
+
+    // Stop current playback
+    clearTimeout(timer);
+    timer = null;
+
+    // Seek
+    i = index;
+
+    // If already playing, continue from here
+    if (isPlaying) {
+        step();
+    } else {
+        highlightCurrentWord(i);
+    }
+});
+
     </script>
     <!-- Bottom panel -->
     <div id="bottomPanel">
