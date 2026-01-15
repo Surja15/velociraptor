@@ -7,8 +7,8 @@
     <style>
         body {
     margin: 0;
-    padding: 20px 20px 120px 20px; /* extra bottom padding for scrollable area */
-    background: #111;
+    padding: 20px;
+    background: linear-gradient(135deg, #111 0%, #1c1c1c 100%);
     color: #eee;
     font-family: system-ui, sans-serif;
 }
@@ -46,7 +46,7 @@
 
         .controls button {
             margin-left: 5px;
-            font-size: 16px;
+            font-size: 15px;
             padding: 5px 10px;
             cursor: pointer;
         }
@@ -94,7 +94,15 @@
     -webkit-backdrop-filter: blur(6px); /* Safari support */
     z-index: 900;
 }
+details {
+    position: relative;      /* allows z-index to work */
+    z-index: 1001;           /* higher than bottom panel (900) */
+}
 
+details[open] ul {
+    max-height: 50vh;        /* optional: scrollable if too long */
+    overflow-y: auto;
+}
 .controls {
     display: flex;
     justify-content: space-between;
