@@ -163,13 +163,30 @@
         }
 
         function render(word) {
-            const clean = word.replace(/[^a-zA-Z0-9]/g, "");
-            if (!clean) return "";
-            const p = pivotIndex(clean);
-            return clean.slice(0, p) + 
-                   `<span class="pivot">${clean[p]}</span>` + 
-                   clean.slice(p + 1);
+    if (!word) return "";
+
+    // Determine pivot index based on letters/digits only
+    const clean = word.replace(/[^a-zA-Z0-9]/g, "");
+    if (!clean) return word; // for punctuation-only "words"
+
+    const p = pivotIndex(clean);
+
+    // Find the real index of the pivot in the original word
+    let letterCount = 0;
+    let pivotIndexInOriginal = 0;
+    for (let i = 0; i < word.length; i++) {
+        if (/[a-zA-Z0-9]/.test(word[i])) letterCount++;
+        if (letterCount - 1 === p) {
+            pivotIndexInOriginal = i;
+            break;
         }
+    }
+
+    return word.slice(0, pivotIndexInOriginal) +
+           `<span class="pivot">${word[pivotIndexInOriginal]}</span>` +
+           word.slice(pivotIndexInOriginal + 1);
+}
+
 
         function lockPivot() {
             const display = document.getElementById("display");
