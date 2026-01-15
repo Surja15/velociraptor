@@ -91,6 +91,12 @@
     font-size: 14px;
     border-top: 1px solid #444;
 }
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
     </style>
 </head>
 <body>
@@ -104,10 +110,16 @@
     <div id="text" class="text-container" contenteditable="true" placeholder="Paste your text here..."></div>
 
     <div class="controls">
+    <div>
         WPM: <input type="number" id="wpm" value="200">
         <button id="playPauseBtn" onclick="togglePlayPause()">▶</button>
         <button onclick="stop()">Reset</button>
     </div>
+
+    <div style="color:#777; font-size:14px;">
+        click on word to seek / skip to…
+    </div>
+</div>
 
     <div class="reader">
         <div id="display" class="word"></div>
@@ -269,6 +281,7 @@
     <!-- Bottom panel -->
     <div id="bottomPanel">
         @Surja15, 2026
+        
     </div>
 </body>
 </html>
