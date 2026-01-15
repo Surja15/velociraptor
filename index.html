@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            margin: 0;
-            padding: 20px;
-            background: #111;
-            color: #eee;
-            font-family: system-ui, sans-serif;
-        }
+    margin: 0;
+    padding: 20px 20px 120px 20px; /* extra bottom padding for scrollable area */
+    background: #111;
+    color: #eee;
+    font-family: system-ui, sans-serif;
+}
+
 
         .text-container {
             width: 100%;
@@ -83,13 +84,17 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: #1c1c1c;   
+    background: rgba(28, 28, 28, 0.2); /* very transparent */
     color: #eee;
     text-align: center;
     padding: 8px 0;
     font-size: 14px;
-    border-top: 1px solid #444;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(.75px); /* stronger blur makes text behind diffused */
+    -webkit-backdrop-filter: blur(6px); /* Safari support */
+    z-index: 900;
 }
+
 .controls {
     display: flex;
     justify-content: space-between;
@@ -117,12 +122,31 @@
 }
 
         #funFacts {
-    padding-bottom: 20px; /* extra space so text doesn't get hidden */
+    position: fixed;
+    bottom: 36px;            /* space above bottom panel */
+    left: 12px;
+    right: 12px;
+    max-height: 40vh;        /* so it won’t exceed screen */
+    overflow-y: auto;        /* scrollable if too long */
+    background: #1c1c1c;
+    color: #ccc;
+    padding: 8px 12px;
+    font-size: 12px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    z-index: 1000;           /* above bottom panel */
 }
 
+
         #funFacts ul {
-    margin-bottom: 12px; /* ensures the last fact isn’t stuck to the edge */
+    margin: 0;
+    padding-left: 18px;
+    padding-bottom: 12px;  /* prevent last item from touching edge */
 }
+
+
+
+
 
 
     </style>
